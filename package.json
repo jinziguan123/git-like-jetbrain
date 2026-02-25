@@ -31,6 +31,32 @@
         "title": "Refresh Git Blame Annotation"
       }
     ],
+    "configuration": {
+      "title": "Git Like JetBrains Annotate",
+      "properties": {
+        "gitLikeJetbrain.sidebarWidth": {
+          "type": "number",
+          "default": 220,
+          "minimum": 120,
+          "maximum": 360,
+          "description": "Width in pixels for the left blame sidebar."
+        },
+        "gitLikeJetbrain.sidebarMaxChars": {
+          "type": "number",
+          "default": 24,
+          "minimum": 14,
+          "maximum": 64,
+          "description": "Maximum characters for each sidebar row text."
+        },
+        "gitLikeJetbrain.sidebarMinVisibleColumns": {
+          "type": "number",
+          "default": 95,
+          "minimum": 40,
+          "maximum": 200,
+          "description": "Hide sidebar when estimated visible editor columns are lower than this value."
+        }
+      }
+    },
     "menus": {
       "editor/lineNumber/context": [
         {
