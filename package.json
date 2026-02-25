@@ -54,15 +54,15 @@
       "editor/lineNumber/context": [
         {
           "command": "gitLikeJetbrain.annotate",
-          "when": "editorTextFocus && resourceScheme == file && !gitLikeJetbrain.annotateEnabled"
+          "when": "resourceScheme == file && !gitLikeJetbrain.annotateEnabled"
         },
         {
           "command": "gitLikeJetbrain.hideAnnotate",
-          "when": "editorTextFocus && resourceScheme == file && gitLikeJetbrain.annotateEnabled"
+          "when": "resourceScheme == file && gitLikeJetbrain.annotateEnabled"
         },
         {
           "command": "gitLikeJetbrain.refreshAnnotate",
-          "when": "editorTextFocus && resourceScheme == file && gitLikeJetbrain.annotateEnabled"
+          "when": "resourceScheme == file && gitLikeJetbrain.annotateEnabled"
         }
       ]
     }

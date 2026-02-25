@@ -18,3 +18,11 @@ test("package contributes line number context commands", () => {
   assert.ok(menuIds.includes("gitLikeJetbrain.hideAnnotate"));
   assert.ok(menuIds.includes("gitLikeJetbrain.refreshAnnotate"));
 });
+
+test("line number menu visibility should not depend on editor focus timing", () => {
+  const menus = manifest.contributes?.menus?.["editor/lineNumber/context"] ?? [];
+  for (const item of menus) {
+    const when = String(item.when || "");
+    assert.equal(when.includes("editorTextFocus"), false);
+  }
+});

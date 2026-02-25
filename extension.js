@@ -202,6 +202,9 @@ function activate(context) {
         updateContextForActiveEditor();
       }
     }),
+    vscode.workspace.onDidOpenTextDocument(() => {
+      updateContextForActiveEditor();
+    }),
     vscode.window.onDidChangeActiveTextEditor((editor) => {
       updateContextForActiveEditor();
       if (!editor || editor.document.uri.scheme !== "file") {
@@ -210,6 +213,9 @@ function activate(context) {
       if (store.isEnabled(editor.document.uri.toString())) {
         scheduleRefresh(editor, "active-editor");
       }
+    }),
+    vscode.window.onDidChangeVisibleTextEditors(() => {
+      updateContextForActiveEditor();
     }),
     vscode.window.onDidChangeTextEditorVisibleRanges((event) => {
       const editor = event.textEditor;
