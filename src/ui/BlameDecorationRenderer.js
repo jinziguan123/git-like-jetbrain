@@ -26,24 +26,25 @@ function estimateVisibleColumns(editor) {
     const startCharacter = range.start?.character || 0;
     const endCharacter = range.end?.character || 0;
     const span = Math.max(0, endCharacter - startCharacter);
-    if (span > maxSpan) {
-      maxSpan = span;
-    }
+    const startLine = range.start?.line;
+    const endLine = range.end?.line;
 
     if (startCharacter > 0) {
       hasHorizontalClipEvidence = true;
+      if (span > maxSpan) {
+        maxSpan = span;
+      }
       continue;
     }
 
-    const startLineLength = tryLineLength(range.start?.line);
-    if (typeof startLineLength === "number" && startLineLength > endCharacter + 1) {
-      hasHorizontalClipEvidence = true;
-      continue;
-    }
-
-    const endLineLength = tryLineLength(range.end?.line);
-    if (typeof endLineLength === "number" && endLineLength > endCharacter + 1) {
-      hasHorizontalClipEvidence = true;
+    if (startLine === endLine) {
+      const lineLength = tryLineLength(startLine);
+      if (typeof lineLength === "number" && lineLength > endCharacter + 1) {
+        hasHorizontalClipEvidence = true;
+        if (span > maxSpan) {
+          maxSpan = span;
+        }
+      }
     }
   }
 

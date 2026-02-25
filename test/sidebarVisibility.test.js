@@ -54,3 +54,21 @@ test("shouldHideSidebar returns false when visibility cannot prove narrow width"
   };
   assert.equal(shouldHideSidebar(editorLike, 100), false);
 });
+
+test("shouldHideSidebar does not treat multi-line range end character as viewport width", () => {
+  const editorLike = {
+    visibleRanges: [{ start: { line: 0, character: 0 }, end: { line: 20, character: 12 } }],
+    document: {
+      lineAt(line) {
+        if (line === 0) {
+          return { text: "x".repeat(220) };
+        }
+        if (line === 20) {
+          return { text: "short line" };
+        }
+        return { text: "x".repeat(100) };
+      }
+    }
+  };
+  assert.equal(shouldHideSidebar(editorLike, 95), false);
+});
