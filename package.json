@@ -1,0 +1,54 @@
+{
+  "name": "git-like-jetbrain-annotate",
+  "displayName": "Git Like JetBrains Annotate",
+  "description": "Line-end git blame annotation for VSCode/Cursor.",
+  "version": "0.0.1",
+  "publisher": "jinziguan",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onCommand:gitLikeJetbrain.annotate",
+    "onCommand:gitLikeJetbrain.hideAnnotate",
+    "onCommand:gitLikeJetbrain.refreshAnnotate"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "gitLikeJetbrain.annotate",
+        "title": "Annotate with Git Blame"
+      },
+      {
+        "command": "gitLikeJetbrain.hideAnnotate",
+        "title": "Hide Git Blame Annotation"
+      },
+      {
+        "command": "gitLikeJetbrain.refreshAnnotate",
+        "title": "Refresh Git Blame Annotation"
+      }
+    ],
+    "menus": {
+      "editor/lineNumber/context": [
+        {
+          "command": "gitLikeJetbrain.annotate",
+          "when": "editorTextFocus && resourceScheme == file && !gitLikeJetbrain.annotateEnabled"
+        },
+        {
+          "command": "gitLikeJetbrain.hideAnnotate",
+          "when": "editorTextFocus && resourceScheme == file && gitLikeJetbrain.annotateEnabled"
+        },
+        {
+          "command": "gitLikeJetbrain.refreshAnnotate",
+          "when": "editorTextFocus && resourceScheme == file && gitLikeJetbrain.annotateEnabled"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node --test ./test/**/*.test.js"
+  }
+}
