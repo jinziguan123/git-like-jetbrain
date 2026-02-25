@@ -14,7 +14,8 @@
   "activationEvents": [
     "onCommand:gitLikeJetbrain.annotate",
     "onCommand:gitLikeJetbrain.hideAnnotate",
-    "onCommand:gitLikeJetbrain.refreshAnnotate"
+    "onCommand:gitLikeJetbrain.refreshAnnotate",
+    "onCommand:gitLikeJetbrain.annotateUnavailable"
   ],
   "contributes": {
     "commands": [
@@ -29,6 +30,11 @@
       {
         "command": "gitLikeJetbrain.refreshAnnotate",
         "title": "Refresh Git Blame Annotation"
+      },
+      {
+        "command": "gitLikeJetbrain.annotateUnavailable",
+        "title": "Annotate with Git Blame (File Not In Git Repository)",
+        "enablement": "false"
       }
     ],
     "configuration": {
@@ -54,7 +60,11 @@
       "editor/lineNumber/context": [
         {
           "command": "gitLikeJetbrain.annotate",
-          "when": "resourceScheme == file && !gitLikeJetbrain.annotateEnabled"
+          "when": "resourceScheme == file && gitLikeJetbrain.canAnnotateActiveFile && !gitLikeJetbrain.annotateEnabled"
+        },
+        {
+          "command": "gitLikeJetbrain.annotateUnavailable",
+          "when": "resourceScheme == file && !gitLikeJetbrain.canAnnotateActiveFile && !gitLikeJetbrain.annotateEnabled"
         },
         {
           "command": "gitLikeJetbrain.hideAnnotate",

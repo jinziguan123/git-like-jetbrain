@@ -13,10 +13,12 @@ test("package contributes line number context commands", () => {
   assert.ok(commandIds.includes("gitLikeJetbrain.annotate"));
   assert.ok(commandIds.includes("gitLikeJetbrain.hideAnnotate"));
   assert.ok(commandIds.includes("gitLikeJetbrain.refreshAnnotate"));
+  assert.ok(commandIds.includes("gitLikeJetbrain.annotateUnavailable"));
 
   assert.ok(menuIds.includes("gitLikeJetbrain.annotate"));
   assert.ok(menuIds.includes("gitLikeJetbrain.hideAnnotate"));
   assert.ok(menuIds.includes("gitLikeJetbrain.refreshAnnotate"));
+  assert.ok(menuIds.includes("gitLikeJetbrain.annotateUnavailable"));
 });
 
 test("line number menu visibility should not depend on editor focus timing", () => {
@@ -25,4 +27,11 @@ test("line number menu visibility should not depend on editor focus timing", () 
     const when = String(item.when || "");
     assert.equal(when.includes("editorTextFocus"), false);
   }
+});
+
+test("annotate unavailable command is disabled in menus", () => {
+  const commands = manifest.contributes?.commands ?? [];
+  const unavailable = commands.find((item) => item.command === "gitLikeJetbrain.annotateUnavailable");
+  assert.ok(unavailable);
+  assert.equal(unavailable.enablement, "false");
 });

@@ -1,10 +1,12 @@
 const vscode = require("vscode");
 const { AnnotationStore } = require("./src/state/AnnotationStore");
 const { BlameDecorationRenderer } = require("./src/ui/BlameDecorationRenderer");
-const { getFileBlamePorcelain, getHeadCommit } = require("./src/git/gitClient");
+const { getFileBlamePorcelain, getHeadCommit, getRepoRoot } = require("./src/git/gitClient");
+const { createGitAvailabilityChecker } = require("./src/git/gitAvailability");
 const { buildAnnotationRows } = require("./src/blame/buildAnnotationRows");
 
 const CONTEXT_KEY = "gitLikeJetbrain.annotateEnabled";
+const CAN_ANNOTATE_CONTEXT_KEY = "gitLikeJetbrain.canAnnotateActiveFile";
 const POLL_MS = 4000;
 const REFRESH_DEBOUNCE_MS = 500;
 
@@ -16,6 +18,10 @@ function activate(context) {
   const fileRepoCache = new Map();
   const pendingRefresh = new Map();
   const sidebarHiddenByUri = new Set();
+  const canAnnotateCache = createGitAvailabilityChecker({
+    getRepoRootFn: getRepoRoot,
+    ttlMs: 3000
+  });
   let pollBusy = false;
 
   function readRenderConfig() {
@@ -35,7 +41,12 @@ function activate(context) {
   async function updateContextForActiveEditor() {
     const editor = vscode.window.activeTextEditor;
     const enabled = Boolean(editor && store.isEnabled(editor.document.uri.toString()));
+    let canAnnotate = false;
+    if (editor && editor.document.uri.scheme === "file") {
+      canAnnotate = await canAnnotateCache(editor.document.uri.fsPath);
+    }
     await vscode.commands.executeCommand("setContext", CONTEXT_KEY, enabled);
+    await vscode.commands.executeCommand("setContext", CAN_ANNOTATE_CONTEXT_KEY, canAnnotate);
   }
 
   function getActiveFileEditor() {
@@ -102,10 +113,20 @@ function activate(context) {
     if (!editor) {
       return;
     }
+    if (!(await canAnnotateCache(editor.document.uri.fsPath))) {
+      await updateContextForActiveEditor();
+      return;
+    }
     const uri = editor.document.uri.toString();
     store.enable(uri);
     await updateContextForActiveEditor();
     await refreshEditor(editor, "annotate");
+  }
+
+  async function runAnnotateUnavailable() {
+    vscode.window.showInformationMessage(
+      "Current file is not inside a Git repository, so Git blame annotate is unavailable."
+    );
   }
 
   async function runHide() {
@@ -172,6 +193,7 @@ function activate(context) {
   context.subscriptions.push(
     renderer,
     vscode.commands.registerCommand("gitLikeJetbrain.annotate", runAnnotate),
+    vscode.commands.registerCommand("gitLikeJetbrain.annotateUnavailable", runAnnotateUnavailable),
     vscode.commands.registerCommand("gitLikeJetbrain.hideAnnotate", runHide),
     vscode.commands.registerCommand("gitLikeJetbrain.refreshAnnotate", runRefresh),
     vscode.workspace.onDidSaveTextDocument((doc) => {
