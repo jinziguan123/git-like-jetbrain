@@ -1,0 +1,83 @@
+{
+  "name": "git-like-jetbrain-annotate",
+  "displayName": "Git Like JetBrains Annotate",
+  "description": "Line-end git blame annotation for VSCode/Cursor.",
+  "version": "0.0.1",
+  "publisher": "jinziguan",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onCommand:gitLikeJetbrain.annotate",
+    "onCommand:gitLikeJetbrain.hideAnnotate",
+    "onCommand:gitLikeJetbrain.refreshAnnotate",
+    "onCommand:gitLikeJetbrain.annotateUnavailable"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "gitLikeJetbrain.annotate",
+        "title": "Annotate with Git Blame"
+      },
+      {
+        "command": "gitLikeJetbrain.hideAnnotate",
+        "title": "Hide Git Blame Annotation"
+      },
+      {
+        "command": "gitLikeJetbrain.refreshAnnotate",
+        "title": "Refresh Git Blame Annotation"
+      },
+      {
+        "command": "gitLikeJetbrain.annotateUnavailable",
+        "title": "Annotate with Git Blame (File Not In Git Repository)",
+        "enablement": "false"
+      }
+    ],
+    "configuration": {
+      "title": "Git Like JetBrains Annotate",
+      "properties": {
+        "gitLikeJetbrain.sidebarMaxWidth": {
+          "type": "number",
+          "default": 200,
+          "minimum": 120,
+          "maximum": 360,
+          "description": "Maximum width in pixels for the left blame sidebar."
+        },
+        "gitLikeJetbrain.sidebarMinVisibleColumns": {
+          "type": "number",
+          "default": 95,
+          "minimum": 40,
+          "maximum": 200,
+          "description": "Hide sidebar when estimated visible editor columns are lower than this value."
+        }
+      }
+    },
+    "menus": {
+      "editor/lineNumber/context": [
+        {
+          "command": "gitLikeJetbrain.annotate",
+          "when": "resourceScheme == file && gitLikeJetbrain.canAnnotateActiveFile && !gitLikeJetbrain.annotateEnabled"
+        },
+        {
+          "command": "gitLikeJetbrain.annotateUnavailable",
+          "when": "resourceScheme == file && !gitLikeJetbrain.canAnnotateActiveFile && !gitLikeJetbrain.annotateEnabled"
+        },
+        {
+          "command": "gitLikeJetbrain.hideAnnotate",
+          "when": "resourceScheme == file && gitLikeJetbrain.annotateEnabled"
+        },
+        {
+          "command": "gitLikeJetbrain.refreshAnnotate",
+          "when": "resourceScheme == file && gitLikeJetbrain.annotateEnabled"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "test": "node --test ./test/**/*.test.js"
+  }
+}
