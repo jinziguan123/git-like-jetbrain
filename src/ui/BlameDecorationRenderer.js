@@ -3,23 +3,63 @@ const { estimateSidebarWidthPx, fitTextToWidth } = require("./sidebarWidth");
 
 function estimateVisibleColumns(editor) {
   const ranges = editor.visibleRanges || [];
-  for (const range of ranges) {
-    const span = (range.end?.character || 0) - (range.start?.character || 0);
-    if (span > 0) {
-      return span;
+  if (ranges.length === 0) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  let maxSpan = 0;
+  let hasHorizontalClipEvidence = false;
+  const document = editor.document;
+
+  function tryLineLength(line) {
+    if (!document || typeof document.lineAt !== "function") {
+      return null;
+    }
+    try {
+      return document.lineAt(line).text.length;
+    } catch (error) {
+      return null;
     }
   }
 
-  const wrapColumn = editor.options?.wordWrapColumn;
-  if (Number.isInteger(wrapColumn) && wrapColumn > 0) {
-    return wrapColumn;
+  for (const range of ranges) {
+    const startCharacter = range.start?.character || 0;
+    const endCharacter = range.end?.character || 0;
+    const span = Math.max(0, endCharacter - startCharacter);
+    if (span > maxSpan) {
+      maxSpan = span;
+    }
+
+    if (startCharacter > 0) {
+      hasHorizontalClipEvidence = true;
+      continue;
+    }
+
+    const startLineLength = tryLineLength(range.start?.line);
+    if (typeof startLineLength === "number" && startLineLength > endCharacter + 1) {
+      hasHorizontalClipEvidence = true;
+      continue;
+    }
+
+    const endLineLength = tryLineLength(range.end?.line);
+    if (typeof endLineLength === "number" && endLineLength > endCharacter + 1) {
+      hasHorizontalClipEvidence = true;
+    }
   }
 
-  return 120;
+  if (!hasHorizontalClipEvidence || maxSpan <= 0) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return maxSpan;
 }
 
 function shouldHideSidebar(editor, minVisibleColumns) {
-  return estimateVisibleColumns(editor) < minVisibleColumns;
+  const estimated = estimateVisibleColumns(editor);
+  if (!Number.isFinite(estimated)) {
+    return false;
+  }
+  return estimated < minVisibleColumns;
 }
 
 class BlameDecorationRenderer {
