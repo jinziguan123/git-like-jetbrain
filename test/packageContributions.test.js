@@ -35,3 +35,8 @@ test("annotate unavailable command is disabled in menus", () => {
   assert.ok(unavailable);
   assert.equal(unavailable.enablement, "false");
 });
+
+test("extension activates on startup so git availability context can be computed before first menu open", () => {
+  const events = manifest.activationEvents ?? [];
+  assert.ok(events.includes("onStartupFinished"));
+});
