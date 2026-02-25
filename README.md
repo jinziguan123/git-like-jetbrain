@@ -1,71 +1,95 @@
 # Git Like JetBrains Annotate
 
-VSCode/Cursor extension that provides JetBrains-style per-line Git blame annotation with a line-number context menu toggle.
+VSCode/Cursor extension that provides JetBrains-like per-line Git blame annotation through the line-number right-click menu.
 
-中文文档: `README.zh-CN.md`
+Chinese documentation: `README.zh-CN.md`
 
-## Features
+## Current Behavior
 
-- Right-click line number to toggle annotation:
-  - `Annotate with Git Blame`
-  - `Hide Git Blame Annotation`
-  - `Refresh Git Blame Annotation`
-- Annotation shows `author + relative time` at the end of each line.
-- Scope is file-only: enabling one file does not enable other files.
-- Auto refresh triggers:
-  - on save
-  - on editor activation
-  - on Git HEAD change polling
+- Annotation is rendered in a **left sidebar** (not at line end).
+- Per-line text format is `YYYY/MM/DD author`.
+- Sidebar color uses a blue age gradient:
+  - newer commit -> lighter blue
+  - older commit -> darker blue
+- Scope is **current file only**.
+- Width strategy:
+  - auto-size from the longest annotation text in the current file
+  - capped by max width (`gitLikeJetbrain.sidebarMaxWidth`, default `200`)
+  - overflow text is truncated with `...`
+
+## Context Menu Commands
+
+Right-click the line number gutter:
+
+- `Annotate with Git Blame`
+- `Hide Git Blame Annotation`
+- `Refresh Git Blame Annotation`
+
+For non-Git files, a disabled menu item is shown:
+
+- `Annotate with Git Blame (File Not In Git Repository)`
+
+## Refresh and Visibility
+
+Auto refresh triggers:
+
+- save file
+- active editor change
+- visible range change
+- extension config change
+- Git HEAD polling change
+
+Sidebar may be hidden when editor width is truly too narrow (based on clipping evidence). If hidden, widening layout and refreshing will restore it.
+
+## Settings
+
+```json
+{
+  "gitLikeJetbrain.sidebarMaxWidth": 200,
+  "gitLikeJetbrain.sidebarMinVisibleColumns": 95
+}
+```
+
+- `sidebarMaxWidth`: maximum sidebar width in px
+- `sidebarMinVisibleColumns`: threshold for narrow-editor hiding
 
 ## Requirements
 
-- Node.js 18+ (tested with Node 23)
-- Git available in `PATH`
-- VSCode/Cursor version compatible with `engines.vscode` in `package.json`
+- Node.js 18+ (tested on Node 23)
+- Git in `PATH`
+- VSCode/Cursor compatible with `engines.vscode` in `package.json`
 
-## Project Layout
+## Build VSIX
 
-- `extension.js`: extension activation, command registration, refresh orchestration
-- `src/git`: git command execution and repository/head resolution
-- `src/blame`: porcelain parser and row label assembly
-- `src/ui`: line-end decoration renderer
-- `src/state`: file-scoped annotation state
-- `test`: Node built-in test runner based unit tests
+```bash
+cd /Users/jinziguan/Desktop/git-like-jetbrain
+npx @vscode/vsce package
+```
 
-## Install Dependencies
+Output example:
 
-This repository currently uses only built-in Node modules and has no external npm dependencies.
+- `git-like-jetbrain-annotate-0.0.1.vsix`
 
-## Run Tests
+## Install In VSCode
+
+CLI:
+
+```bash
+code --install-extension /Users/jinziguan/Desktop/git-like-jetbrain/git-like-jetbrain-annotate-0.0.1.vsix --force
+```
+
+Or use Extensions panel -> `...` -> `Install from VSIX...`.
+
+## Development
+
+Run tests:
 
 ```bash
 npm test
 ```
 
-## Debug In VSCode
+Debug:
 
-1. Open this repository folder in VSCode.
-2. Press `F5` (or Run and Debug -> Start Debugging).
-3. In the Extension Development Host window, open a file inside a Git repository.
-4. Right-click the line number gutter and choose `Annotate with Git Blame`.
-5. Right-click again to use `Hide Git Blame Annotation` or `Refresh Git Blame Annotation`.
-
-## Debug In Cursor
-
-Cursor is VSCode-compatible for extension development in most workflows.
-
-1. Open this repository in Cursor.
-2. Start extension debugging using Cursor's Run/Debug flow (same as VSCode-style Extension Host).
-3. In the Extension Host window, open a Git-tracked file and use the line-number right-click menu.
-
-## Behavior Notes
-
-- Non-file editors and non-Git files are ignored by commands.
-- If `git blame` fails for a file, the extension clears decoration and shows warning on annotate action.
-- Annotation is best-effort and may be temporarily stale while editing unsaved content; save will refresh.
-
-## Current Limitations
-
-- No commit message/hash display (by design for compact UI).
-- No workspace-global toggle (file-only by design).
-- No packaged `.vsix` build pipeline in this repository yet.
+1. Open repo in VSCode/Cursor.
+2. Start extension host (`F5` in VSCode or equivalent in Cursor).
+3. Open a Git-tracked file and use the line-number context menu.
