@@ -1,4 +1,5 @@
 const { buildBlueSidebarColors } = require("./sidebarTheme");
+const { estimateSidebarWidthPx, fitTextToWidth } = require("./sidebarWidth");
 
 function estimateVisibleColumns(editor) {
   const ranges = editor.visibleRanges || [];
@@ -31,15 +32,30 @@ class BlameDecorationRenderer {
   }
 
   render(editor, rows, renderConfig = {}) {
-    const sidebarWidth = Number.isInteger(renderConfig.sidebarWidth) ? renderConfig.sidebarWidth : 220;
+    const sidebarMaxWidth = Number.isInteger(renderConfig.sidebarMaxWidth) ? renderConfig.sidebarMaxWidth : 200;
     const minVisibleColumns = Number.isInteger(renderConfig.minVisibleColumns)
       ? renderConfig.minVisibleColumns
       : 95;
+    const charWidthPx = Number.isFinite(renderConfig.charWidthPx) ? renderConfig.charWidthPx : 9;
+    const horizontalPaddingPx = Number.isFinite(renderConfig.horizontalPaddingPx)
+      ? renderConfig.horizontalPaddingPx
+      : 16;
 
     if (shouldHideSidebar(editor, minVisibleColumns)) {
       this.clear(editor);
       return { hidden: true };
     }
+
+    if (rows.length === 0) {
+      this.clear(editor);
+      return { hidden: false };
+    }
+
+    const sidebarWidth = estimateSidebarWidthPx(rows, {
+      maxWidthPx: sidebarMaxWidth,
+      charWidthPx,
+      horizontalPaddingPx
+    });
 
     const options = [];
 
@@ -56,7 +72,7 @@ class BlameDecorationRenderer {
         range: new this.vscode.Range(line.range.start, line.range.start),
         renderOptions: {
           before: {
-            contentText: ` ${row.displayText} `,
+            contentText: ` ${fitTextToWidth(row.fullText, sidebarWidth, { charWidthPx, horizontalPaddingPx })} `,
             color: colors.foreground,
             backgroundColor: colors.background,
             width: `${sidebarWidth}px`,

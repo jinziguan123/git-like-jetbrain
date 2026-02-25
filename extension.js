@@ -20,14 +20,12 @@ function activate(context) {
 
   function readRenderConfig() {
     const config = vscode.workspace.getConfiguration("gitLikeJetbrain");
-    const sidebarWidth = Number(config.get("sidebarWidth", 220));
-    const sidebarMaxChars = Number(config.get("sidebarMaxChars", 24));
+    const sidebarMaxWidth = Number(config.get("sidebarMaxWidth", 200));
     const sidebarMinVisibleColumns = Number(config.get("sidebarMinVisibleColumns", 95));
     return {
-      sidebarWidth: Number.isFinite(sidebarWidth) ? Math.max(120, Math.min(360, Math.round(sidebarWidth))) : 220,
-      sidebarMaxChars: Number.isFinite(sidebarMaxChars)
-        ? Math.max(14, Math.min(64, Math.round(sidebarMaxChars)))
-        : 24,
+      sidebarMaxWidth: Number.isFinite(sidebarMaxWidth)
+        ? Math.max(120, Math.min(360, Math.round(sidebarMaxWidth)))
+        : 200,
       sidebarMinVisibleColumns: Number.isFinite(sidebarMinVisibleColumns)
         ? Math.max(40, Math.min(200, Math.round(sidebarMinVisibleColumns)))
         : 95
@@ -59,11 +57,9 @@ function activate(context) {
       const renderConfig = readRenderConfig();
       const { repoRoot, porcelain } = await getFileBlamePorcelain(editor.document.uri.fsPath);
       fileRepoCache.set(uri, repoRoot);
-      const rows = buildAnnotationRows(porcelain, {
-        maxChars: renderConfig.sidebarMaxChars
-      });
+      const rows = buildAnnotationRows(porcelain);
       const renderResult = renderer.render(editor, rows, {
-        sidebarWidth: renderConfig.sidebarWidth,
+        sidebarMaxWidth: renderConfig.sidebarMaxWidth,
         minVisibleColumns: renderConfig.sidebarMinVisibleColumns
       });
       if (renderResult.hidden) {

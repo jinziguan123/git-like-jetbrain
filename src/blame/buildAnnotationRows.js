@@ -11,16 +11,6 @@ function formatDateYmd(authorTime) {
   return `${year}/${month}/${day}`;
 }
 
-function truncateText(text, maxChars) {
-  if (text.length <= maxChars) {
-    return text;
-  }
-  if (maxChars <= 3) {
-    return text.slice(0, maxChars);
-  }
-  return `${text.slice(0, maxChars - 3)}...`;
-}
-
 function calcAgeRatio(authorTime, minTime, maxTime) {
   if (maxTime <= minTime) {
     return 0.5;
@@ -35,8 +25,7 @@ function calcAgeRatio(authorTime, minTime, maxTime) {
   return ratio;
 }
 
-function buildAnnotationRows(porcelain, options = {}) {
-  const maxChars = Number.isInteger(options.maxChars) ? options.maxChars : 24;
+function buildAnnotationRows(porcelain) {
   const lines = parsePorcelain(porcelain);
   if (lines.length === 0) {
     return [];
@@ -54,7 +43,7 @@ function buildAnnotationRows(porcelain, options = {}) {
       author: item.author,
       authorTime: item.authorTime,
       dateText,
-      displayText: truncateText(rawText, maxChars),
+      fullText: rawText,
       ageRatio: calcAgeRatio(item.authorTime, minTime, maxTime)
     };
   });
@@ -63,6 +52,5 @@ function buildAnnotationRows(porcelain, options = {}) {
 module.exports = {
   buildAnnotationRows,
   formatDateYmd,
-  truncateText,
   calcAgeRatio
 };

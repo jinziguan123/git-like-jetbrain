@@ -34,19 +34,12 @@
     "configuration": {
       "title": "Git Like JetBrains Annotate",
       "properties": {
-        "gitLikeJetbrain.sidebarWidth": {
+        "gitLikeJetbrain.sidebarMaxWidth": {
           "type": "number",
-          "default": 220,
+          "default": 200,
           "minimum": 120,
           "maximum": 360,
-          "description": "Width in pixels for the left blame sidebar."
-        },
-        "gitLikeJetbrain.sidebarMaxChars": {
-          "type": "number",
-          "default": 24,
-          "minimum": 14,
-          "maximum": 64,
-          "description": "Maximum characters for each sidebar row text."
+          "description": "Maximum width in pixels for the left blame sidebar."
         },
         "gitLikeJetbrain.sidebarMinVisibleColumns": {
           "type": "number",
