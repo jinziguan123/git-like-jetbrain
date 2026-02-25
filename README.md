@@ -2,6 +2,8 @@
 
 VSCode/Cursor extension that provides JetBrains-style per-line Git blame annotation with a line-number context menu toggle.
 
+中文文档: `README.zh-CN.md`
+
 ## Features
 
 - Right-click line number to toggle annotation:
