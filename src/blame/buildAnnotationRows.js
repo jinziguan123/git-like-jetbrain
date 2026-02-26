@@ -11,6 +11,11 @@ function formatDateYmd(authorTime) {
   return `${year}/${month}/${day}`;
 }
 
+function isUncommittedAuthor(author) {
+  const text = String(author || "").trim().toLowerCase();
+  return text === "not committed yet";
+}
+
 function calcAgeRatio(authorTime, minTime, maxTime) {
   if (maxTime <= minTime) {
     return 0.5;
@@ -31,20 +36,23 @@ function buildAnnotationRows(porcelain) {
     return [];
   }
 
-  const times = lines.map((item) => item.authorTime || 0);
-  const minTime = Math.min(...times);
-  const maxTime = Math.max(...times);
+  const committedLines = lines.filter((item) => !isUncommittedAuthor(item.author));
+  const times = committedLines.map((item) => item.authorTime || 0);
+  const hasCommitted = committedLines.length > 0;
+  const minTime = hasCommitted ? Math.min(...times) : 0;
+  const maxTime = hasCommitted ? Math.max(...times) : 0;
 
   return lines.map((item) => {
-    const dateText = formatDateYmd(item.authorTime);
-    const rawText = `${dateText} ${item.author}`.trim();
+    const isUncommitted = isUncommittedAuthor(item.author);
+    const dateText = isUncommitted ? "" : formatDateYmd(item.authorTime);
+    const rawText = isUncommitted ? "" : `${dateText} ${item.author}`.trim();
     return {
       lineNumber: item.lineNumber,
       author: item.author,
       authorTime: item.authorTime,
       dateText,
       fullText: rawText,
-      ageRatio: calcAgeRatio(item.authorTime, minTime, maxTime)
+      ageRatio: isUncommitted || !hasCommitted ? 0 : calcAgeRatio(item.authorTime, minTime, maxTime)
     };
   });
 }
@@ -52,5 +60,6 @@ function buildAnnotationRows(porcelain) {
 module.exports = {
   buildAnnotationRows,
   formatDateYmd,
-  calcAgeRatio
+  calcAgeRatio,
+  isUncommittedAuthor
 };

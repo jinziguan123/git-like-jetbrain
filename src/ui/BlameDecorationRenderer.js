@@ -105,6 +105,9 @@ class BlameDecorationRenderer {
       if (lineIndex < 0 || lineIndex >= editor.document.lineCount) {
         continue;
       }
+      if (!row.fullText) {
+        continue;
+      }
 
       const line = editor.document.lineAt(lineIndex);
       const colors = buildBlueSidebarColors(row.ageRatio);
