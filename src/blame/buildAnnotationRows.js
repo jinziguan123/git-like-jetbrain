@@ -1,4 +1,5 @@
 const { parsePorcelain } = require("./parsePorcelain");
+const ZERO_REVISION = "0000000000000000000000000000000000000000";
 
 function formatDateYmd(authorTime) {
   if (!authorTime || authorTime <= 0) {
@@ -14,6 +15,14 @@ function formatDateYmd(authorTime) {
 function isUncommittedAuthor(author) {
   const text = String(author || "").trim().toLowerCase();
   return text === "not committed yet";
+}
+
+function isUncommittedRevision(revision) {
+  return String(revision || "").trim() === ZERO_REVISION;
+}
+
+function isUncommittedLine(item) {
+  return isUncommittedRevision(item.revision) || isUncommittedAuthor(item.author);
 }
 
 function calcAgeRatio(authorTime, minTime, maxTime) {
@@ -36,17 +45,18 @@ function buildAnnotationRows(porcelain) {
     return [];
   }
 
-  const committedLines = lines.filter((item) => !isUncommittedAuthor(item.author));
+  const committedLines = lines.filter((item) => !isUncommittedLine(item));
   const times = committedLines.map((item) => item.authorTime || 0);
   const hasCommitted = committedLines.length > 0;
   const minTime = hasCommitted ? Math.min(...times) : 0;
   const maxTime = hasCommitted ? Math.max(...times) : 0;
 
   return lines.map((item) => {
-    const isUncommitted = isUncommittedAuthor(item.author);
+    const isUncommitted = isUncommittedLine(item);
     const dateText = isUncommitted ? "" : formatDateYmd(item.authorTime);
     const rawText = isUncommitted ? "" : `${dateText} ${item.author}`.trim();
     return {
+      revision: item.revision,
       lineNumber: item.lineNumber,
       author: item.author,
       authorTime: item.authorTime,
@@ -61,5 +71,6 @@ module.exports = {
   buildAnnotationRows,
   formatDateYmd,
   calcAgeRatio,
-  isUncommittedAuthor
+  isUncommittedAuthor,
+  isUncommittedRevision
 };

@@ -17,6 +17,7 @@ function activate(context) {
   const repoHeadCache = new Map();
   const fileRepoCache = new Map();
   const pendingRefresh = new Map();
+  const refreshTokenByUri = new Map();
   const sidebarHiddenByUri = new Set();
   const canAnnotateCache = createGitAvailabilityChecker({
     getRepoRootFn: getRepoRoot,
@@ -59,6 +60,8 @@ function activate(context) {
 
   async function refreshEditor(editor, reason) {
     const uri = editor.document.uri.toString();
+    const refreshToken = (refreshTokenByUri.get(uri) || 0) + 1;
+    refreshTokenByUri.set(uri, refreshToken);
     if (!store.isEnabled(uri)) {
       renderer.clear(editor);
       return;
@@ -66,7 +69,13 @@ function activate(context) {
 
     try {
       const renderConfig = readRenderConfig();
-      const { repoRoot, porcelain } = await getFileBlamePorcelain(editor.document.uri.fsPath);
+      const documentText = editor.document.getText();
+      const { repoRoot, porcelain } = await getFileBlamePorcelain(editor.document.uri.fsPath, {
+        contents: documentText
+      });
+      if (refreshTokenByUri.get(uri) !== refreshToken) {
+        return;
+      }
       fileRepoCache.set(uri, repoRoot);
       const rows = buildAnnotationRows(porcelain);
       const renderResult = renderer.render(editor, rows, {
@@ -84,8 +93,14 @@ function activate(context) {
         sidebarHiddenByUri.delete(uri);
       }
       const head = await getHeadCommit(repoRoot);
+      if (refreshTokenByUri.get(uri) !== refreshToken) {
+        return;
+      }
       repoHeadCache.set(repoRoot, head);
     } catch (error) {
+      if (refreshTokenByUri.get(uri) !== refreshToken) {
+        return;
+      }
       const message = error && error.message ? error.message : String(error);
       if (reason === "annotate") {
         vscode.window.showWarningMessage(`Git blame unavailable: ${message}`);
@@ -196,6 +211,22 @@ function activate(context) {
     vscode.commands.registerCommand("gitLikeJetbrain.annotateUnavailable", runAnnotateUnavailable),
     vscode.commands.registerCommand("gitLikeJetbrain.hideAnnotate", runHide),
     vscode.commands.registerCommand("gitLikeJetbrain.refreshAnnotate", runRefresh),
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      const doc = event.document;
+      if (doc.uri.scheme !== "file") {
+        return;
+      }
+      const uri = doc.uri.toString();
+      if (!store.isEnabled(uri)) {
+        return;
+      }
+      for (const editor of vscode.window.visibleTextEditors) {
+        if (editor.document.uri.toString() !== uri) {
+          continue;
+        }
+        scheduleRefresh(editor, "text-change");
+      }
+    }),
     vscode.workspace.onDidSaveTextDocument((doc) => {
       if (doc.uri.scheme !== "file") {
         return;
@@ -215,6 +246,7 @@ function activate(context) {
       store.disable(uri);
       sidebarHiddenByUri.delete(uri);
       fileRepoCache.delete(uri);
+      refreshTokenByUri.delete(uri);
       const pending = pendingRefresh.get(uri);
       if (pending) {
         clearTimeout(pending);
