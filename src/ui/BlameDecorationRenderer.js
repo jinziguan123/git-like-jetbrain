@@ -105,20 +105,20 @@ class BlameDecorationRenderer {
       if (lineIndex < 0 || lineIndex >= editor.document.lineCount) {
         continue;
       }
-      if (!row.fullText) {
-        continue;
-      }
-
       const line = editor.document.lineAt(lineIndex);
       const colors = buildBlueSidebarColors(row.ageRatio);
+      const hasText = Boolean(row.fullText);
+      const contentText = hasText
+        ? ` ${fitTextToWidth(row.fullText, sidebarWidth, { charWidthPx, horizontalPaddingPx })} `
+        : " ";
 
       options.push({
         range: new this.vscode.Range(line.range.start, line.range.start),
         renderOptions: {
           before: {
-            contentText: ` ${fitTextToWidth(row.fullText, sidebarWidth, { charWidthPx, horizontalPaddingPx })} `,
+            contentText,
             color: colors.foreground,
-            backgroundColor: colors.background,
+            backgroundColor: hasText ? colors.background : "rgba(0, 0, 0, 0)",
             width: `${sidebarWidth}px`,
             margin: "0 12px 0 0",
             textDecoration: "none"
